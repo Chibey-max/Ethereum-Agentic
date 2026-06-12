@@ -3,8 +3,9 @@
 import { useAccount, useBalance } from 'wagmi';
 import { ShieldCheck, Timer } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { CONTRACT_ADDRESS } from '@/lib/contract';
+import { CONTRACT_ADDRESS, ACTIVE_CHAIN } from '@/lib/contract';
 import { formatEther } from 'viem';
+import { ChainSelector } from './ChainSelector';
 
 export function Navbar() {
   const { address } = useAccount();
@@ -21,7 +22,7 @@ export function Navbar() {
             <span className="font-mono text-xs font-bold text-green tracking-widest uppercase">ETH Agent</span>
           </div>
           <span className="text-border-bright text-xs">|</span>
-          <span className="font-mono text-xs text-text-muted">Sepolia Testnet</span>
+          <span className="font-mono text-xs text-text-muted">{ACTIVE_CHAIN.name}</span>
         </div>
 
         {/* Center: contract balance */}
@@ -36,6 +37,7 @@ export function Navbar() {
 
         {/* Wallet */}
         <div className="flex items-center gap-2">
+          <ChainSelector compact />
           {balance && (
             <span className="font-mono text-xs text-text-muted hidden sm:block">
               {parseFloat(formatEther(balance.value)).toFixed(4)} ETH
@@ -55,7 +57,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4 text-text-muted text-xs font-mono">
-          <span>CHAIN:11155111</span>
+          <span>CHAIN:{ACTIVE_CHAIN.id}</span>
           <span className="text-border-bright">|</span>
           <span className="inline-flex items-center gap-1"><Timer size={12} /> TIMELOCK:10MIN</span>
           <span className="text-border-bright">|</span>

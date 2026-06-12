@@ -1,38 +1,50 @@
-export const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-  '0xE49A6044D47De19504B73aA36F31899843B05259') as `0x${string}`;
+import { getChain, CHAINS } from './chains'
 
-export const CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || '11155111');
+// Active chain from environment — judges set NEXT_PUBLIC_CHAIN_ID
+export const CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || '421614')
 
-const splitRpcUrls = (value?: string) =>
-  (value || '')
+// Active chain config
+export const ACTIVE_CHAIN = getChain(CHAIN_ID)
+
+// Contract address for active chain
+export const CONTRACT_ADDRESS = (
+  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
+) as `0x${string}`
+
+// Robinhood Chain contract (for prize track)
+export const RH_CONTRACT_ADDRESS = (
+  process.env.NEXT_PUBLIC_RH_CONTRACT_ADDRESS || ''
+) as `0x${string}`
+
+// Explorer URLs — chain aware
+export const EXPLORER_URL = ACTIVE_CHAIN.explorerUrl
+export const EXPLORER_NAME = ACTIVE_CHAIN.explorerName
+
+export function getTxExplorerUrl(txHash: string): string {
+  return `${EXPLORER_URL}/tx/${txHash}`
+}
+
+export function getAddressExplorerUrl(address: string): string {
+  return `${EXPLORER_URL}/address/${address}`
+}
+
+// RPC URLs — chain aware with fallbacks
+const buildRpcUrls = (): string[] => {
+  const primary = process.env.NEXT_PUBLIC_RPC_URL || ACTIVE_CHAIN.rpcUrl
+  const extra = (process.env.NEXT_PUBLIC_RPC_URLS || '')
     .split(',')
-    .map((url) => url.trim())
-    .filter(Boolean);
+    .map((u) => u.trim())
+    .filter(Boolean)
+  return Array.from(new Set([primary, ...extra].filter(Boolean)))
+}
 
-export const ALCHEMY_RPC_URL = process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL || '';
+export const RPC_URLS = buildRpcUrls()
 
-export const ANKR_RPC_URL = process.env.NEXT_PUBLIC_ANKR_RPC_URL || '';
+export const GUARDIAN_ADDRESS = (
+  process.env.NEXT_PUBLIC_GUARDIAN_ADDRESS || ''
+) as `0x${string}`
 
-export const QUICKNODE_RPC_URL = process.env.NEXT_PUBLIC_QUICKNODE_RPC_URL || '';
-
-const SERVER_RPC_URLS = splitRpcUrls(process.env.RPC_URLS || process.env.RPC_URL);
-const PUBLIC_RPC_URLS = splitRpcUrls(process.env.NEXT_PUBLIC_RPC_URLS);
-
-export const RPC_URLS = Array.from(
-  new Set([
-    ...SERVER_RPC_URLS,
-    ...PUBLIC_RPC_URLS,
-    ALCHEMY_RPC_URL,
-    ANKR_RPC_URL,
-    QUICKNODE_RPC_URL,
-    'https://eth-sepolia.g.alchemy.com/v2/demo',
-    'https://sepolia.drpc.org',
-  ].filter(Boolean))
-);
-
-export const GUARDIAN_ADDRESS = (process.env.NEXT_PUBLIC_GUARDIAN_ADDRESS ||
-  '0xd9100b701e21fC578BFD937AC2DbDfb5bbD42572') as `0x${string}`;
-
+// Keep existing AGENT_WALLET_ABI below this line — DO NOT CHANGE IT
 export const AGENT_WALLET_ABI = [
   // View functions
   { name: 'agent', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ type: 'address' }] },

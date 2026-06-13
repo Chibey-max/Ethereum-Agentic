@@ -28,7 +28,7 @@ User → Claude Desktop → MCP Server → AgentWallet.sol → Arbitrum One / Ro
 
 | Chain | Address | Explorer |
 |-------|---------|---------|
-| Arbitrum Sepolia | `0x...` | [Arbiscan](https://sepolia.arbiscan.io/address/0x...) |
+| Arbitrum Sepolia | `0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75` | [Arbiscan](https://sepolia.arbiscan.io/address/0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75) |
 | Robinhood Chain Testnet | `0x...` | [RH Explorer](https://explorer.testnet.chain.robinhood.com/address/0x...) |
 | Ethereum Sepolia (original) | `0xE49A6044D47De19504B73aA36F31899843B05259` | [Etherscan](https://sepolia.etherscan.io/address/0xE49A6044D47De19504B73aA36F31899843B05259) |
 

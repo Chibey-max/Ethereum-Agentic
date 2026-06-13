@@ -1,5 +1,7 @@
 'use client';
 
+export { ChainSelector } from './ChainSelector';
+
 import { useState, ReactNode } from 'react';
 import { Copy, Check, ExternalLink } from 'lucide-react';
 import { formatAddress, getEtherscanLink, cn } from '@/lib/utils';

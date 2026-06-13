@@ -1,221 +1,306 @@
-# ETH Agent
+# Arbitrum Agent Kit
 
-> Autonomous Ethereum AI agent framework for EVM chains.
-> Like Starknet Agent Kit, but for Ethereum.
-> Connect your AI assistant to an on-chain wallet with
-> enforced spending limits, whitelisting, and guardian controls.
+> The first MCP-compatible autonomous AI agent framework on Arbitrum — with on-chain safety enforced by `AgentWallet.sol`
 
-## How it works
+Built for the [Arbitrum Open House London Buildathon](https://www.hackquest.io/hackathons/Arbitrum-Open-House-London-Online-Buildathon) · Best Agentic Project Track
 
-```text
-User prompt → MCP Server → AgentWallet.sol → Sepolia
-                              ↑
-                    enforces: spending limits
-                              whitelist
-                              pause/unpause
-                              daily limits
+---
+
+## What It Does
+
+Arbitrum Agent Kit lets any AI assistant — Claude, GPT, Gemini — autonomously execute DeFi operations on Arbitrum and Robinhood Chain, with every action enforced at the smart contract level before it hits the chain.
+
+```
+User → Claude Desktop → MCP Server → AgentWallet.sol → Arbitrum One / Robinhood Chain
+                                           ↑
+                              enforces: spending limits
+                                         whitelist
+                                         guardian kill switch
+                                         daily limits
+                                         ArbSys L2 block tracking
 ```
 
-## Quickstart
+**The safety layer between AI and money.** No unconstrained agent can move funds without explicit guardian-approved policies — enforced 100% on-chain.
 
-### Option A — npx (fastest)
+---
+
+## Deployed Contracts
+
+| Chain | Address | Explorer |
+|-------|---------|---------|
+| Arbitrum Sepolia | `0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75` | [Arbiscan](https://sepolia.arbiscan.io/address/0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75) |
+| Robinhood Chain Testnet | `0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75` | [RH Explorer](https://explorer.testnet.chain.robinhood.com/address/0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75) |
+| Ethereum Sepolia (original) | `0xE49A6044D47De19504B73aA36F31899843B05259` | [Etherscan](https://sepolia.etherscan.io/address/0xE49A6044D47De19504B73aA36F31899843B05259) |
+
+---
+
+## Network Capability Matrix
+
+| Feature | Arbitrum Sepolia | Robinhood Chain | Arbitrum One |
+|---------|:---:|:---:|:---:|
+| AgentWallet deployed | ✅ | ✅ | ⚙️ user deploys |
+| AI agent ETH transfers | ✅ | ✅ | ✅ |
+| Spending limit enforcement | ✅ | ✅ | ✅ |
+| Guardian kill switch | ✅ | ✅ | ✅ |
+| MCP server (Claude/Cursor/Kiro) | ✅ | ✅ | ✅ |
+| ArbSys L2 block tracking | ✅ native | ✅ native | ✅ native |
+| Contract verified on explorer | ✅ Arbiscan | ✅ RH Explorer | ⚙️ after user deploy |
+| Real funds | ❌ testnet | ❌ testnet | ✅ real ETH |
+| Recommended for | Demos & judges | Prize track | Production |
+
+---
+
+## Prerequisites
+
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- **Git**
+- **An AI provider key** (pick one — all free tier):
+  - [Groq](https://console.groq.com) — fastest, recommended
+  - [OpenRouter](https://openrouter.ai)
+  - [Google Gemini](https://aistudio.google.com)
+- **Claude Desktop** (for MCP usage) — [claude.ai/download](https://claude.ai/download)
+- **A wallet with testnet ETH** on Arbitrum Sepolia — get free ETH at [arbitrum.faucet.dev](https://arbitrum.faucet.dev/)
+
+---
+
+## How to Run (5 minutes)
+
+### Step 1 — Clone the repo
+
 ```bash
-npx create-eth-agent@latest my-agent
-cd my-agent
-cp .env.example .env
-# fill in .env
-npm run build
-npm run setup
-# restart your IDE
+git clone https://github.com/Chibey-max/Ethereum-Agentic.git -b arbitrum
+cd Ethereum-Agentic
 ```
 
-### Option B — Clone the full repo
+### Step 2 — Set up the runtime
+
 ```bash
-git clone https://github.com/Chibey-max/Ethereum-Agentic.git
-cd Ethereum-Agentic/runtime
+cd runtime
 cp .env.example .env
+```
+
+Edit `.env` with your values. The contract is already deployed — just fill in your keys:
+
+```env
+CHAIN_ID=421614
+
+# Use the already-deployed contract on Arbitrum Sepolia:
+AGENT_CONTRACT_ADDRESS=0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75
+
+# Your wallet's private key (this wallet must be set as the "agent" role in the contract)
+AGENT_PRIVATE_KEY=0x...
+
+# Free at console.groq.com
+GROQ_API_KEY=gsk_...
+
+# RPC (free, no signup needed)
+RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
+ARBITRUM_SEPOLIA_RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
+```
+
+> **Note:** The deployed contract's `agent` role is set to a specific address. To use the demo contract, your wallet must match that address, or you can deploy your own (see [Deploy Your Own](#deploy-your-own) below).
+
+```bash
 npm install
 npm run build
+```
+
+### Step 3 — Connect to Claude Desktop (MCP)
+
+```bash
 npm run setup
 ```
 
-### Option C — npm install (build on top)
-```ts
-npm install eth-agent-kit
+This prints your MCP config. Add it to Claude Desktop:
 
-import { ETHAgent } from 'eth-agent-kit'
-const agent = new ETHAgent({ ...config })
-await agent.run('Send 0.01 ETH to 0x...')
-```
-
-## MCP Config (manual)
-
-Add to your IDE config:
-
-Claude Desktop: ~/.config/claude/claude_desktop_config.json
-Cursor:         ~/.cursor/mcp.json
-Kiro:           ~/.kiro/settings/mcp.json
+- **Mac**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
-    "eth-agent": {
+    "arbitrum-agent": {
       "command": "node",
-      "args": ["/full/path/to/runtime/dist/mcp-server.js"]
+      "args": ["/full/path/to/Ethereum-Agentic/runtime/dist/mcp-server.js"]
     }
   }
 }
 ```
 
-## Available Tools
+Restart Claude Desktop. You should see "arbitrum-agent" appear in the tools list.
 
-| Tool | Description |
+### Step 4 — Try it
+
+In Claude Desktop, type:
+
+```
+Check my agent wallet state on Arbitrum
+```
+
+Claude will call `get_wallet_state` and return live data from the chain — balance, limits, paused status, chain ID.
+
+```
+What's my remaining daily ETH limit?
+```
+
+```
+Show me recent transaction history
+```
+
+### Step 5 — Run the dashboard (optional)
+
+```bash
+cd dashboard
+cp .env.local.example .env.local
+```
+
+Edit `.env.local`:
+
+```env
+NEXT_PUBLIC_CHAIN_ID=421614
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75
+NEXT_PUBLIC_RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
+NEXT_PUBLIC_GUARDIAN_ADDRESS=0xd9100b701e21fC578BFD937AC2DbDfb5bbD42572
+```
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) — live contract state, spending meter, transaction history with Arbiscan links, chain selector.
+
+---
+
+## Understanding the Roles
+
+The `AgentWallet` contract has two roles:
+
+| Role | Who | Can do |
+|------|-----|--------|
+| **Agent** | AI / MCP server | Call `execute()` to send ETH or tokens — within policy |
+| **Guardian** | You (the owner) | Set spending limits, whitelist addresses, pause/unpause, withdraw |
+
+**Important:** Before the agent can send ETH anywhere, the **guardian must whitelist the recipient**. This is the safety mechanism — the AI can only send to addresses you've explicitly approved.
+
+To whitelist a recipient address from the dashboard: connect your guardian wallet → Whitelist Manager → Queue Call → wait 10 minutes → Apply.
+
+---
+
+## Deploy Your Own Contract
+
+If you want to deploy a fresh `AgentWallet` where you control the agent role:
+
+```bash
+# Install Foundry: https://getfoundry.sh
+cd contracts
+cp .env.example .env
+# Fill AGENT_ADDRESS, GUARDIAN_ADDRESS, PRIVATE_KEY, ARBISCAN_API_KEY
+
+forge script script/Deploy.s.sol --rpc-url arbitrum_sepolia --private-key $PRIVATE_KEY --broadcast -vvv
+
+# Verify on Arbiscan
+forge verify-contract <DEPLOYED_ADDRESS> src/AgentWallet.sol:AgentWallet \
+  --chain-id 421614 --etherscan-api-key $ARBISCAN_API_KEY
+```
+
+Then update `AGENT_CONTRACT_ADDRESS` in `runtime/.env` and `NEXT_PUBLIC_CONTRACT_ADDRESS` in `dashboard/.env.local`.
+
+---
+
+## Available Agent Tools
+
+| Tool | What it does |
 |------|-------------|
-| get_wallet_state | Balance, limits, paused status, roles |
-| transfer_eth | Send ETH to whitelisted address |
-| transfer_token | Send ERC-20 within token policy |
-| check_limits | Remaining daily ETH allowance |
-| get_tx_status | Look up transaction by hash |
-| check_whitelist | Check if address+action is allowed |
-| get_pending_actions | Queued calls with countdown timers |
-| get_transaction_history | Recent on-chain activity |
+| `get_wallet_state` | Balance, limits, paused status, chain info |
+| `transfer_eth` | Send ETH to a whitelisted address |
+| `transfer_token` | Send ERC-20 within token policy |
+| `check_limits` | Remaining daily ETH allowance |
+| `get_tx_status` | Look up a tx by hash — returns Arbiscan link |
+| `check_whitelist` | Check if an address + action is whitelisted |
+| `get_pending_actions` | Timelocked actions with countdown |
+| `get_transaction_history` | Recent on-chain activity |
 
-## Smart Contract
+---
 
-AgentWallet enforces all agent actions on-chain:
-- Per-transaction ETH spending limit
-- Daily ETH spending limit
+## Use as an npm Package
+
+```bash
+npm install eth-agent-kit
+```
+
+```typescript
+import { ETHAgent } from 'eth-agent-kit'
+
+const agent = new ETHAgent({
+  chainId: 421614,                                          // Arbitrum Sepolia
+  contractAddress: '0xE8C8b0AF7C0247bD007Fe93d08828E44eC298D75',
+  privateKey: process.env.AGENT_PRIVATE_KEY!,
+  rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+  groqApiKey: process.env.GROQ_API_KEY,
+})
+
+const result = await agent.run('Check my wallet balance on Arbitrum')
+console.log(result)
+```
+
+Supported `chainId` values: `421614` (Arb Sepolia), `46630` (Robinhood Chain), `42161` (Arb One), `11155111` (Eth Sepolia).
+
+---
+
+## Scaffold a New Project
+
+```bash
+npx create-eth-agent@latest my-agent
+cd my-agent
+cp .env.example .env   # fill in your keys
+npm run build
+npm run setup          # prints MCP config to add to Claude Desktop
+```
+
+---
+
+## Arbitrum-Native Features
+
+- **`ArbSys` precompile integration** — `AgentWallet.sol` uses `IArbSys(0x64).arbBlockNumber()` for L2-accurate block tracking and `arbChainID()` for chain verification. Falls back to `block.number` on non-Arbitrum chains.
+- **`verifyArbitrumDeployment()`** — call this on Arbiscan to emit `ArbitrumChainVerified(chainId, l2Block)`, proving deployment on L2
+- **Multi-chain runtime** — single `CHAIN_ID` env var switches between all supported chains with no code changes
+
+---
+
+## Smart Contract Architecture
+
+`AgentWallet.sol` enforces all agent actions on-chain:
+
+- Per-transaction ETH spending limit (default: 0.1 ETH)
+- Daily ETH spending limit (default: 0.5 ETH)
 - Whitelisted target addresses and function selectors
 - Token-specific daily limits
 - Guardian pause/unpause kill switch
 - 10-minute timelock on limit increases
-- 2-step role transfers
+- 2-step role transfers (agent + guardian)
 
-Deploy your own: see contracts/README.md
-
-## T3N Verifiable Identity Layer
-
-ETH Agent integrates with Terminal 3 Network for
-cryptographically verifiable agent identity.
-
-Every agent session:
-- Opens an encrypted TEE (Trusted Execution Environment)
-  session via T3N SDK
-- Receives a `did:t3n` decentralized identifier linked to
-  the AgentWallet address
-- Logs every action to an immutable audit trail on the
-  T3N ledger
-- Compatible with A2A, ERC-8004, and MCP protocols
-
-**Setup:**
-Get your free API key at https://terminal3.io/claim-page
-
-Add to your `.env`:
-```
-T3N_API_KEY=your_key_here
-```
-
-On agent startup you will see:
-```
-✅ T3N Identity active
-   Address : 0x...
-   Credits : 20000
-```
-
-If `T3N_API_KEY` is not set the agent runs normally
-without the identity layer.
-
-## Platform Integrations
-
-- **MCP** — Cursor, VS Code, Kiro, Claude Desktop, Zed
-- **Anna Platform** — Executa plugin via `anna-executa/`
-- **Terminal 3 Network** — TEE-backed verifiable identity
-
-### Anna Executa Plugin
-Run ETH Agent as an Anna platform plugin:
-```bash
-node anna-executa/index.js
-```
-Test:
-```bash
-echo '{"jsonrpc":"2.0","method":"describe","id":1}' | node anna-executa/index.js
-```
-
-## Roadmap
-- [ ] Multi-chain support (Base, Arbitrum, Optimism)
-- [ ] Role-based agent teams (treasury, HR, ops)
-- [ ] Visual policy builder — no-code limit configuration
-- [ ] Telegram/Slack bot interface
-- [ ] Audit trail export for compliance
-- [ ] Anna App Store listing
+---
 
 ## Project Structure
 
-```text
-eth-agent/
-  contracts/            AgentWallet.sol + deploy scripts
-  runtime/              MCP server + AI agent loop
-  dashboard/            Next.js web UI
-  packages/
-    eth-agent-kit/      npm install eth-agent-kit
-    create-eth-agent/   npx create-eth-agent
+```
+Ethereum-Agentic/ (arbitrum branch)
+├── contracts/          AgentWallet.sol + Foundry deploy scripts
+├── runtime/            MCP server + AI agent loop (TypeScript)
+├── dashboard/          Next.js cyberpunk dashboard
+└── packages/
+    ├── eth-agent-kit/       npm install eth-agent-kit
+    └── create-eth-agent/    npx create-eth-agent@latest
 ```
 
-## Package & Monorepo Overview
+---
 
-This repository is an npm workspace monorepo with publishable packages:
+## Published Packages
 
-- `eth-agent-kit` — SDK for building Ethereum AI agents programmatically
-- `create-eth-agent` — scaffolding CLI used by `npx create-eth-agent`
+- [`eth-agent-kit`](https://www.npmjs.com/package/eth-agent-kit) — SDK for embedding the agent in your own app
+- [`create-eth-agent`](https://www.npmjs.com/package/create-eth-agent) — scaffolding CLI to start a new project
 
-Published packages:
+---
 
-- `eth-agent-kit` on npm
-- `create-eth-agent@0.1.4` on npm (includes TS config compatibility fix)
-
-## Troubleshooting
-
-### `npm run build` fails in a scaffolded project with `node_modules/ox/...` TypeScript errors
-
-Symptoms include errors like:
-
-- `Property 'replaceAll' does not exist on type 'string'`
-- `Cannot find name 'window'`
-- `AuthenticatorAttestationResponse` / `AuthenticationExtensionsClientOutputs` missing
-
-Cause: an older scaffold template TypeScript config (`target/lib` too old for current `viem`/`ox` types).
-
-Fix:
-
-1. Scaffold with latest CLI:
-
-```bash
-npx create-eth-agent@latest my-agent
-```
-
-2. Or patch `tsconfig.json` in existing generated projects:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"]
-  }
-}
-```
-
-Then re-run:
-
-```bash
-npm run build
-```
-
-## Requirements
-
-- Node.js 18+
-- Sepolia testnet ETH (https://sepoliafaucet.com)
-- Deployed AgentWallet contract
-- At least one AI provider key required:
-  - Groq (recommended, free): console.groq.com
-  - OpenRouter (free models): openrouter.ai
-  - Google Gemini (free tier): aistudio.google.com
+Built for the Arbitrum Open House London Buildathon · June 2026

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { ExternalLink, RefreshCw } from 'lucide-react';
 import { Panel, Badge } from '@/components/shared';
 import { useEvents } from '@/hooks/useEvents';
-import { formatAddress, formatETH, formatSelector, getEtherscanLink } from '@/lib/utils';
+import { formatAddress, formatETH, formatSelector } from '@/lib/utils';
+import { getTxExplorerUrl, getAddressExplorerUrl } from '@/lib/contract';
 import { formatDistanceToNow } from 'date-fns';
 
 export function TransactionHistoryPanel() {
@@ -86,7 +87,7 @@ export function TransactionHistoryPanel() {
                     </td>
                     <td className="px-4 py-2 text-text-primary whitespace-nowrap">
                       <a
-                        href={getEtherscanLink(event.target, 'address')}
+                        href={getAddressExplorerUrl(event.target)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-blue-bright transition-colors flex items-center gap-1 group"
@@ -116,7 +117,7 @@ export function TransactionHistoryPanel() {
                     <td className="px-4 py-2">
                       {event.txHash ? (
                         <a
-                          href={getEtherscanLink(event.txHash)}
+                          href={getTxExplorerUrl(event.txHash)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-bright hover:underline flex items-center gap-1 group"

@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+/// @dev Arbitrum L2 system precompile — available on all Arbitrum chains
+interface IArbSys {
+    function arbBlockNumber() external view returns (uint256);
+    function arbChainID() external view returns (uint256);
+}
+address constant ARB_SYS = 0x0000000000000000000000000000000000000064;
+
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
@@ -26,6 +33,8 @@ contract AgentWallet is ReentrancyGuard {
 
   // ── State ──────────────────────────────────────────────────────────────
   bool public paused;
+
+  uint256 public lastL2Block; // tracked for Arbitrum block-level auditability
 
   uint256 public ethTxLimit;
   uint256 public ethDailyLimit;
@@ -93,6 +102,7 @@ contract AgentWallet is ReentrancyGuard {
   event LimitsDecreased(uint256 txLimit, uint256 daily);
   event TokenPolicySet(address indexed token, uint256 dailyLimit);
   event TokenPolicyRevoked(address indexed token);
+  event ArbitrumChainVerified(uint256 indexed chainId, uint256 indexed l2Block);
 
   // ── Constructor ────────────────────────────────────────────────────────
   constructor(address _agent, address _guardian, uint256 _ethTxLimit, uint256 _ethDailyLimit) {
@@ -149,6 +159,7 @@ contract AgentWallet is ReentrancyGuard {
     (bool ok, bytes memory res) = target.call{value: value}(data);
     require(ok, 'Execution failed');
 
+    lastL2Block = _l2BlockNumber();
     emit Executed(target, value, sel);
     return res;
   }
@@ -367,6 +378,31 @@ contract AgentWallet is ReentrancyGuard {
     emit GuardianTransferred(guardian, pendingGuardian);
     guardian = pendingGuardian;
     pendingGuardian = address(0);
+  }
+
+  // ── Arbitrum L2 helpers ────────────────────────────────────────────────
+  /// @dev Returns the L2 block number on Arbitrum, falls back to block.number on other chains.
+  ///      Using ArbSys.arbBlockNumber() gives accurate L2 block tracking on Arbitrum One and Sepolia.
+  function _l2BlockNumber() internal view returns (uint256) {
+    try IArbSys(ARB_SYS).arbBlockNumber() returns (uint256 n) {
+      return n;
+    } catch {
+      return block.number;
+    }
+  }
+
+  /// @dev Returns the Arbitrum chain ID, or 0 on non-Arbitrum chains.
+  function arbChainId() public view returns (uint256) {
+    try IArbSys(ARB_SYS).arbChainID() returns (uint256 id) {
+      return id;
+    } catch {
+      return 0;
+    }
+  }
+
+  /// @notice Emits chain verification event — call this to prove Arbitrum deployment on Arbiscan
+  function verifyArbitrumDeployment() external {
+    emit ArbitrumChainVerified(arbChainId(), _l2BlockNumber());
   }
 
   // ── Internal ───────────────────────────────────────────────────────────

@@ -14,8 +14,25 @@ import {
   type Hex
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { sepolia } from 'viem/chains'
+import { arbitrum, arbitrumSepolia, sepolia } from 'viem/chains'
+import { defineChain, type Chain } from 'viem'
 import { AGENT_WALLET_ABI } from './abi'
+
+const robinhoodChain = defineChain({
+  id: 46630,
+  name: 'Robinhood Chain Testnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] }, public: { http: ['https://rpc.testnet.chain.robinhood.com'] } },
+  blockExplorers: { default: { name: 'Robinhood Explorer', url: 'https://explorer.testnet.chain.robinhood.com' } },
+  testnet: true,
+})
+
+const SUPPORTED_CHAINS: Record<number, { chain: Chain; explorerUrl: string; fallbackRpcs: string[] }> = {
+  [sepolia.id]: { chain: sepolia, explorerUrl: 'https://sepolia.etherscan.io', fallbackRpcs: ['https://rpc.ankr.com/eth_sepolia', 'https://sepolia.drpc.org'] },
+  [arbitrumSepolia.id]: { chain: arbitrumSepolia, explorerUrl: 'https://sepolia.arbiscan.io', fallbackRpcs: ['https://sepolia-rollup.arbitrum.io/rpc'] },
+  [arbitrum.id]: { chain: arbitrum, explorerUrl: 'https://arbiscan.io', fallbackRpcs: ['https://arb1.arbitrum.io/rpc'] },
+  [robinhoodChain.id]: { chain: robinhoodChain, explorerUrl: 'https://explorer.testnet.chain.robinhood.com', fallbackRpcs: ['https://rpc.testnet.chain.robinhood.com'] },
+}
 import type { AgentConfig, AgentEvent, PreflightResult, TransactionResult, WalletState } from './types'
 import { startMCPServer as startMCP } from './mcp'
 
@@ -67,20 +84,20 @@ export class ETHAgent {
 
   constructor(config: AgentConfig) {
     const chainId = config.chainId ?? 11155111
-    if (chainId !== sepolia.id) {
-      throw new Error(`Unsupported CHAIN_ID=${chainId}. This SDK currently supports Sepolia only (${sepolia.id}).`)
+    const chainEntry = SUPPORTED_CHAINS[chainId]
+    if (!chainEntry) {
+      throw new Error(`Unsupported CHAIN_ID=${chainId}. Supported: ${Object.keys(SUPPORTED_CHAINS).join(', ')}`)
     }
     const normalizedPrivateKey = config.privateKey.startsWith('0x') ? config.privateKey : (`0x${config.privateKey}` as `0x${string}`)
     this.config = { ...config, privateKey: normalizedPrivateKey, chainId }
     this.account = privateKeyToAccount(normalizedPrivateKey)
+    const { chain, fallbackRpcs } = chainEntry
     const transport = fallback([
       http(config.rpcUrl, { timeout: 15_000, retryCount: 2, retryDelay: 250 }),
-      http('https://rpc.ankr.com/eth_sepolia', { timeout: 15_000, retryCount: 2, retryDelay: 250 }),
-      http('https://sepolia.drpc.org', { timeout: 15_000, retryCount: 2, retryDelay: 250 }),
-      http('https://ethereum-sepolia-rpc.publicnode.com', { timeout: 15_000, retryCount: 2, retryDelay: 250 })
+      ...fallbackRpcs.map((url) => http(url, { timeout: 15_000, retryCount: 2, retryDelay: 250 }))
     ])
-    this.publicClient = createPublicClient({ chain: sepolia, transport })
-    this.walletClient = createWalletClient({ account: this.account, chain: sepolia, transport })
+    this.publicClient = createPublicClient({ chain, transport })
+    this.walletClient = createWalletClient({ account: this.account, chain, transport })
   }
 
   async run(goal: string, onEvent?: (e: AgentEvent) => void): Promise<string> {
@@ -162,7 +179,7 @@ export class ETHAgent {
         agent,
         guardian,
         contractAddress: this.config.contractAddress,
-        network: 'sepolia'
+        network: SUPPORTED_CHAINS[this.config.chainId ?? 11155111]?.chain.name ?? 'unknown'
       }
     } catch (error) {
       throw new Error(`Failed to read wallet state: ${this.cleanError(error)}`)
@@ -522,6 +539,7 @@ export class ETHAgent {
   }
 
   private getExplorerTxUrl(txHash: `0x${string}`): string {
-    return `https://sepolia.etherscan.io/tx/${txHash}`
+    const explorerUrl = SUPPORTED_CHAINS[this.config.chainId ?? 11155111]?.explorerUrl ?? 'https://sepolia.etherscan.io'
+    return `${explorerUrl}/tx/${txHash}`
   }
 }

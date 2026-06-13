@@ -3,7 +3,7 @@
 import { RefreshCw } from 'lucide-react';
 import { Panel, Stat, Badge, AddressDisplay, Button } from '@/components/shared';
 import { useContractState } from '@/hooks/useContractState';
-import { CONTRACT_ADDRESS } from '@/lib/contract';
+import { CONTRACT_ADDRESS, ACTIVE_CHAIN, getTxExplorerUrl, getAddressExplorerUrl } from '@/lib/contract';
 
 export function OverviewPanel() {
   const { data, loading, error, refetch, lastUpdated } = useContractState();
@@ -34,7 +34,7 @@ export function OverviewPanel() {
           ) : (
             <Badge variant="green" pulse>● ACTIVE</Badge>
           )}
-          <Badge variant="blue">Sepolia</Badge>
+          <Badge variant="blue">{ACTIVE_CHAIN.shortName}</Badge>
           {lastUpdated && (
             <span className="text-text-muted text-xs font-mono">
               Updated {lastUpdated.toLocaleTimeString()}
@@ -53,8 +53,8 @@ export function OverviewPanel() {
           </div>
           <div>
             <p className="text-text-muted text-xs font-mono uppercase tracking-wider mb-1">Network</p>
-            <p className="text-text-primary font-mono text-sm font-bold">Ethereum</p>
-            <p className="text-text-muted font-mono text-xs">Sepolia Testnet</p>
+            <p className="text-text-primary font-mono text-sm font-bold">{ACTIVE_CHAIN.name}</p>
+            <p className="text-text-muted font-mono text-xs">{ACTIVE_CHAIN.badge}</p>
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export function OverviewPanel() {
         {/* Chain ID */}
         <div className="flex justify-between items-center text-xs font-mono text-text-muted pt-1 border-t border-border">
           <span>CHAIN ID</span>
-          <span className="text-text-secondary">11155111</span>
+          <span className="text-text-secondary">{ACTIVE_CHAIN.id}</span>
         </div>
       </div>
     </Panel>

@@ -1,5 +1,6 @@
 import { formatEther } from "viem"
 import { walletReadClient, AGENT_WALLET_ABI, AGENT_WALLET_ADDRESS } from "./shared"
+import { getChain } from "../../chain"
 import type { WalletState } from "../types"
 
 export async function readState(): Promise<WalletState> {
@@ -18,7 +19,7 @@ export async function readState(): Promise<WalletState> {
 
     return {
       contractAddress: AGENT_WALLET_ADDRESS,
-      chainId: 11155111,
+      chainId: getChain().id,
       balanceWei,
       agent,
       guardian,

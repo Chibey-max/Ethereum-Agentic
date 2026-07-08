@@ -2,10 +2,12 @@ import OpenAI from "openai"
 import { formatEther } from "viem"
 import { publicClient } from "./account"
 import { requireAddress } from "./env"
+import { getChain } from "./chain"
 import { executeToolCall } from "./executor"
 import { agentTools, type ToolName } from "./tools"
 
 const agentWalletAddress = requireAddress("AGENT_CONTRACT_ADDRESS")
+const networkName = getChain().name
 
 type ProviderName = "groq" | "openrouter" | "google"
 
@@ -63,7 +65,7 @@ Your personality:
 - Explain what you can do now and what needs guardian changes.
 
 Environment:
-- Network: Ethereum Sepolia.
+- Network: ${networkName}.
 - Wallet execution path: AgentWallet.execute().
 - Policies are enforced on-chain by the smart contract.
 
@@ -199,7 +201,7 @@ export async function runAgent(goal: string, emit?: (event: AgentEvent) => void)
 
       const text =
         response.choices[0]?.message?.content?.trim() ||
-        "Hey — I can help with wallet state, limits, transfers, and tx status on Sepolia."
+        `Hey — I can help with wallet state, limits, transfers, and tx status on ${networkName}.`
 
       emit?.({ type: "text", content: text })
       emit?.({ type: "done", content: text })

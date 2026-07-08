@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, isAddress } from "viem"
-import { sepolia } from "viem/chains"
 import { privateKeyToAccount } from "viem/accounts"
-import { requireAddress, requireEnv, requirePrivateKey } from "./env"
+import { requireAddress, requirePrivateKey, getRpcUrl } from "./env"
+import { getChain } from "./chain"
 import { describeSelector, formatUnlockTime } from "./pending-format"
 
 const CONTRACT = requireAddress("AGENT_CONTRACT_ADDRESS")
@@ -51,10 +51,11 @@ async function main() {
     throw new Error("Usage: npm run allow-eth-recipient -- 0xRecipientAddress")
   }
 
-  const rpcUrl = requireEnv("ALCHEMY_RPC_URL")
+  const rpcUrl = getRpcUrl()
+  const chain = getChain()
   const guardian = privateKeyToAccount(requirePrivateKey("GUARDIAN_PRIVATE_KEY"))
-  const publicClient = createPublicClient({ chain: sepolia, transport: http(rpcUrl) })
-  const walletClient = createWalletClient({ account: guardian, chain: sepolia, transport: http(rpcUrl) })
+  const publicClient = createPublicClient({ chain, transport: http(rpcUrl) })
+  const walletClient = createWalletClient({ account: guardian, chain, transport: http(rpcUrl) })
 
   const onchainGuardian = await publicClient.readContract({
     address: CONTRACT,

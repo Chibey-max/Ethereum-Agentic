@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import { requireAddress, requireEnv } from "../env"
+import { getChain } from "../chain"
 import { setupSseHeaders, sendMcpMessage } from "./transport"
 import { sessionStore } from "./session"
 import { authenticateRequest, getAuthMode } from "./auth/session"
@@ -154,7 +155,7 @@ app.get("/health", (_req, res) => {
     status: "ok",
     connectedClients: sessionStore.count(),
     contractAddress,
-    network: { name: "sepolia", chainId: 11155111 }
+    network: { name: getChain().name, chainId: getChain().id }
   })
 })
 

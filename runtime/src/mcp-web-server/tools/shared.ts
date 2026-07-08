@@ -1,20 +1,20 @@
 import { createPublicClient, createWalletClient, http } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { requireAddress, requireEnv, requirePrivateKey } from "../../env"
+import { requireAddress, requirePrivateKey, getRpcUrl } from "../../env"
+import { getChain } from "../../chain"
 
 export const AGENT_WALLET_ADDRESS = requireAddress("AGENT_CONTRACT_ADDRESS")
 export const AGENT_ACCOUNT = privateKeyToAccount(requirePrivateKey("AGENT_PRIVATE_KEY"))
 
 export const walletReadClient = createPublicClient({
-  chain: sepolia,
-  transport: http(requireEnv("ALCHEMY_RPC_URL"))
+  chain: getChain(),
+  transport: http(getRpcUrl())
 })
 
 export const walletWriteClient = createWalletClient({
   account: AGENT_ACCOUNT,
-  chain: sepolia,
-  transport: http(requireEnv("ALCHEMY_RPC_URL"))
+  chain: getChain(),
+  transport: http(getRpcUrl())
 })
 
 export const AGENT_WALLET_ABI = [

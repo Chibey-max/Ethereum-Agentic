@@ -5,7 +5,6 @@ import readline from "node:readline/promises"
 import { stdin as input, stdout as output } from "node:process"
 import { createPublicClient, formatEther, http } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
 import {
   getRpcUrl,
   getRuntimeEnvPath,
@@ -13,6 +12,7 @@ import {
   requireAddress,
   requirePrivateKey
 } from "../src/env"
+import { getChain } from "../src/chain"
 
 type IdeName = "claude" | "cursor" | "kiro"
 
@@ -191,14 +191,15 @@ async function runSetup(options: SetupOptions): Promise<void> {
   const contractAddress = requireAddress("AGENT_CONTRACT_ADDRESS")
   const agentPrivateKey = requirePrivateKey("AGENT_PRIVATE_KEY")
 
-  const client = createPublicClient({ chain: sepolia, transport: http(rpcUrl) })
+  const chain = getChain()
+  const client = createPublicClient({ chain, transport: http(rpcUrl) })
 
   const blockNumber = await client.getBlockNumber()
   log(`RPC connection OK. Current block: ${blockNumber.toString()}`)
 
   const bytecode = await client.getBytecode({ address: contractAddress })
   if (!bytecode || bytecode === "0x") {
-    throw new Error(`No contract code found at AGENT_CONTRACT_ADDRESS=${contractAddress} on Sepolia.`)
+    throw new Error(`No contract code found at AGENT_CONTRACT_ADDRESS=${contractAddress} on ${chain.name}.`)
   }
 
   const [agent, guardian, ethTxLimit, ethDailyLimit, paused] = await Promise.all([

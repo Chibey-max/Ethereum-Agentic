@@ -3,6 +3,11 @@
 Ethereum AI agent framework. Connect an AI assistant to an
 `AgentWallet` smart contract with enforced spending limits.
 
+> This SDK currently supports Sepolia only. The main `runtime/` in
+> [Ethereum-Agentic](https://github.com/Chibey-max/Ethereum-Agentic) also
+> supports BOT Chain testnet via `CHAIN_ID` — that multi-chain support
+> hasn't been ported to this package yet.
+
 ## Install
 
 ```bash

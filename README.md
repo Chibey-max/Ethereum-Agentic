@@ -5,16 +5,20 @@
 > Connect your AI assistant to an on-chain wallet with
 > enforced spending limits, whitelisting, and guardian controls.
 
+**Supports Ethereum Sepolia and BOT Chain testnet** — same audited `AgentWallet` contract, the runtime targets whichever chain you configure.
+
 ## How it works
 
 ```text
-User prompt → MCP Server → AgentWallet.sol → Sepolia
+User prompt → MCP Server → AgentWallet.sol → [Sepolia | BOT Chain testnet]
                               ↑
                     enforces: spending limits
                               whitelist
                               pause/unpause
                               daily limits
 ```
+
+Chain is selected at runtime via `CHAIN_ID` — no code changes needed to switch networks.
 
 ## Quickstart
 
@@ -72,9 +76,9 @@ Kiro:           ~/.kiro/settings/mcp.json
 | Tool | Description |
 |------|-------------|
 | get_wallet_state | Balance, limits, paused status, roles |
-| transfer_eth | Send ETH to whitelisted address |
+| transfer_eth | Send native token (ETH on Sepolia, BOT on BOT Chain) to whitelisted address |
 | transfer_token | Send ERC-20 within token policy |
-| check_limits | Remaining daily ETH allowance |
+| check_limits | Remaining daily native-token allowance |
 | get_tx_status | Look up transaction by hash |
 | check_whitelist | Check if address+action is allowed |
 | get_pending_actions | Queued calls with countdown timers |
@@ -83,13 +87,24 @@ Kiro:           ~/.kiro/settings/mcp.json
 ## Smart Contract
 
 AgentWallet enforces all agent actions on-chain:
-- Per-transaction ETH spending limit
-- Daily ETH spending limit
+- Per-transaction native-token spending limit
+- Daily native-token spending limit
 - Whitelisted target addresses and function selectors
 - Token-specific daily limits
 - Guardian pause/unpause kill switch
 - 10-minute timelock on limit increases
 - 2-step role transfers
+
+The runtime automatically targets the configured chain via `CHAIN_ID` — Sepolia and BOT Chain testnet are supported today (`runtime/src/chain.ts`), and more EVM chains can be added there without touching the contract or agent logic.
+
+## Deployments
+
+The same audited `AgentWallet` contract is live on two networks:
+
+| Network | Chain ID | Contract Address | Explorer |
+|---|---|---|---|
+| Ethereum Sepolia | 11155111 | `0x4fbE2CeFEC5ef766634C83CFAd0338fEfBB65b35` | [Etherscan](https://sepolia.etherscan.io/address/0x4fbE2CeFEC5ef766634C83CFAd0338fEfBB65b35) |
+| BOT Chain testnet | 968 | `0x3d157f7df3551b1423cb804f818792a978a9635c` | [scan.bohr.life](https://scan.bohr.life/address/0x3d157f7df3551b1423cb804f818792a978a9635c) |
 
 Deploy your own: see contracts/README.md
 
@@ -142,7 +157,7 @@ echo '{"jsonrpc":"2.0","method":"describe","id":1}' | node anna-executa/index.js
 ```
 
 ## Roadmap
-- [ ] Multi-chain support (Base, Arbitrum, Optimism)
+- [x] Multi-chain support — Sepolia + BOT Chain testnet live; Base, Arbitrum, Optimism next
 - [ ] Role-based agent teams (treasury, HR, ops)
 - [ ] Visual policy builder — no-code limit configuration
 - [ ] Telegram/Slack bot interface
@@ -213,7 +228,9 @@ npm run build
 ## Requirements
 
 - Node.js 18+
-- Sepolia testnet ETH (https://sepoliafaucet.com)
+- Testnet funds for your target chain:
+  - Sepolia: testnet ETH (https://sepoliafaucet.com)
+  - BOT Chain testnet: testnet BOT, chain ID `968`, RPC `https://rpc.bohr.life`, faucet `faucet.botchain.ai/basic`
 - Deployed AgentWallet contract
 - At least one AI provider key required:
   - Groq (recommended, free): console.groq.com

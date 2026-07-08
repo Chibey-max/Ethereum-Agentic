@@ -96,3 +96,16 @@ npm run setup
 
 ### Provider/RPC rejected request
 - Switch RPC to `https://sepolia.drpc.org` or your own Alchemy endpoint.
+
+---
+
+## Also deployed on BOT Chain testnet
+
+This is the same audited `AgentWallet` contract already live on Sepolia
+(`0x4fbE2CeFEC5ef766634C83CFAd0338fEfBB65b35`) — this is a migration/multi-chain
+deployment, not a new project.
+
+- **Chain:** BOT Chain testnet (chain ID `968`)
+- **Contract address:** `0x3d157f7df3551b1423cb804f818792a978a9635c`
+- **Explorer:** https://scan.bohr.life/address/0x3d157f7df3551b1423cb804f818792a978a9635c
+- **Deployment tx:** `0x81d709689159bda38d55bc170795bc32cfcf177d093b87bb57b77f8baf207a54`

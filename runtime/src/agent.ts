@@ -8,6 +8,7 @@ import { agentTools, type ToolName } from "./tools"
 
 const agentWalletAddress = requireAddress("AGENT_CONTRACT_ADDRESS")
 const networkName = getChain().name
+const nativeSymbol = getChain().nativeCurrency.symbol
 
 type ProviderName = "groq" | "openrouter" | "google"
 
@@ -131,11 +132,11 @@ async function getWalletContext(): Promise<string> {
       `- Agent role: ${agent}`,
       `- Guardian role: ${guardian}`,
       `- Status: ${paused ? "PAUSED" : "ACTIVE"}`,
-      `- ETH balance: ${formatEther(balance)} ETH`,
-      `- ETH per-tx limit: ${formatEther(ethTxLimit)} ETH`,
-      `- ETH daily limit: ${formatEther(ethDailyLimit)} ETH`,
-      `- ETH spent today: ${formatEther(ethDailySpent)} ETH`,
-      `- ETH remaining today: ${formatEther(remaining)} ETH`
+      `- ${nativeSymbol} balance: ${formatEther(balance)} ${nativeSymbol}`,
+      `- ${nativeSymbol} per-tx limit: ${formatEther(ethTxLimit)} ${nativeSymbol}`,
+      `- ${nativeSymbol} daily limit: ${formatEther(ethDailyLimit)} ${nativeSymbol}`,
+      `- ${nativeSymbol} spent today: ${formatEther(ethDailySpent)} ${nativeSymbol}`,
+      `- ${nativeSymbol} remaining today: ${formatEther(remaining)} ${nativeSymbol}`
     ].join("\n")
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

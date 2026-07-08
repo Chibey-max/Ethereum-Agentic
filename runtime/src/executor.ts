@@ -9,9 +9,11 @@ import {
 } from "viem"
 import { agentAccount, getExplorerTxUrl, publicClient, walletClient } from "./account"
 import { requireAddress } from "./env"
+import { getChain } from "./chain"
 import type { ToolName } from "./tools"
 
 const AGENT_WALLET_ADDRESS = requireAddress("AGENT_CONTRACT_ADDRESS")
+const NATIVE_SYMBOL = getChain().nativeCurrency.symbol
 const ZERO_SELECTOR = "0x00000000" as const
 
 const AGENT_WALLET_ABI = [
@@ -316,7 +318,7 @@ async function runPreflight(params: {
         dailySpentWei: state.ethDailySpentWei,
         remainingDailyWei: state.remainingDailyWei
       },
-      reason: "Exceeds ETH tx limit"
+      reason: `Exceeds ${NATIVE_SYMBOL} tx limit`
     }
   }
 
@@ -333,7 +335,7 @@ async function runPreflight(params: {
         dailySpentWei: state.ethDailySpentWei,
         remainingDailyWei: state.remainingDailyWei
       },
-      reason: "ETH daily limit exceeded"
+      reason: `${NATIVE_SYMBOL} daily limit exceeded`
     }
   }
 

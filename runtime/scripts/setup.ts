@@ -213,8 +213,9 @@ async function runSetup(options: SetupOptions): Promise<void> {
   log("\nContract state:")
   log(`Agent address: ${agent}`)
   log(`Guardian address: ${guardian}`)
-  log(`ETH tx limit: ${formatEther(ethTxLimit)} ETH`)
-  log(`Daily limit: ${formatEther(ethDailyLimit)} ETH`)
+  const symbol = chain.nativeCurrency.symbol
+  log(`${symbol} tx limit: ${formatEther(ethTxLimit)} ${symbol}`)
+  log(`Daily limit: ${formatEther(ethDailyLimit)} ${symbol}`)
   log(`Status: ${paused ? "PAUSED" : "Active"}`)
 
   const localAgent = privateKeyToAccount(agentPrivateKey)
